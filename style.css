@@ -1,0 +1,32 @@
+/* Custom styles to enhance Tailwind */
+
+/* Modal styles */
+#edit-modal {
+  animation: modalFade 0.3s ease-out;
+}
+
+@keyframes modalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+table th, table td {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.edit-input {
+  background: #f9fafb;
+  border: 2px solid #3b82f6;
+}
+
+/* Button hover improvements */
+.edit-btn, .delete-btn {
+  transition: all 0.2s ease;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .grid-cols-4 { grid-template-columns: 1fr; }
+  table { font-size: 0.875rem; }
+}
+
