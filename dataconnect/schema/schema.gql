@@ -1,0 +1,49 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type TonerType @table {
+  model: String!
+  createdAt: Timestamp!
+  manufacturer: String
+  compatiblePrinters: String
+}
+
+type Toner @table {
+  tonerType: TonerType!
+  quantity: Int!
+  status: String!
+  createdAt: Timestamp!
+  serialNumber: String
+  batchNumber: String
+  minimumStockLevel: Int
+}
+
+type Printer @table {
+  name: String!
+  location: String!
+  createdAt: Timestamp!
+  serialNumber: String
+  ipAddress: String
+  model: String
+}
+
+type Sector @table {
+  name: String!
+  createdAt: Timestamp!
+  description: String
+}
+
+type Movement @table {
+  toner: Toner!
+  movementType: String!
+  quantity: Int!
+  movementDate: Date!
+  createdAt: Timestamp!
+  printer: Printer
+  sector: Sector
+  notes: String
+}
