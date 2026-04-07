@@ -1,0 +1,53 @@
+query ListAllTonerTypes @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  tonerTypes {
+    id
+    model
+    manufacturer
+    compatiblePrinters
+    createdAt
+  }
+}
+
+mutation CreateNewPrinter($name: String!, $location: String!, $serialNumber: String, $ipAddress: String, $model: String) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users.") {
+  printer_insert(data: {
+    name: $name,
+    location: $location,
+    serialNumber: $serialNumber,
+    ipAddress: $ipAddress,
+    model: $model,
+    createdAt_expr: "request.time"
+  }) {
+    id
+  }
+}
+
+query GetTonerInventoryByModel($tonerModel: String!) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users.") {
+  toners(where: {tonerType: {model: {eq: $tonerModel}}}) {
+    id
+    tonerType {
+      model
+      manufacturer
+    }
+    quantity
+    status
+    serialNumber
+    batchNumber
+    minimumStockLevel
+    createdAt
+  }
+}
+
+mutation RecordTonerMovement($tonerId: UUID!, $movementType: String!, $quantity: Int!, $movementDate: Date!, $printerId: UUID, $sectorId: UUID, $notes: String) @auth(level: USER, insecureReason: "This operation is safe to expose to all logged in users.") {
+  movement_insert(data: {
+    tonerId: $tonerId,
+    movementType: $movementType,
+    quantity: $quantity,
+    movementDate: $movementDate,
+    printerId: $printerId,
+    sectorId: $sectorId,
+    notes: $notes,
+    createdAt_expr: "request.time"
+  }) {
+    id
+  }
+}

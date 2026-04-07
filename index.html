@@ -3,6 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Toner - SQLite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Controle de Toner (SQLite)</h1>
+    
+    <!-- Status SQLite -->
+    <div id="db-status" class="mb-6 p-4 bg-white rounded-lg shadow-md">
+      <strong>Status SQLite:</strong> <span id="status-text">Carregando...</span>
+    </div>
+
+    <!-- Add Sector Form -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+      <h2 class="text-2xl font-semibold mb-4">Adicionar Setor</h2>
+      <form id="add-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input type="text" id="nome" placeholder="Nome do Setor" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+        <input type="text" id="ramal" placeholder="Ramal do Setor" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+        <input type="text" id="cilindro" placeholder="Cilindro" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+        <input type="number" id="toner" placeholder="Toner Disponível" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+        <button type="submit" class="md:col-span-4 bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600">Adicionar</button>
+      </form>
+    </div>
+
+    <!-- Sectors Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <h2 class="text-2xl font-semibold p-6 border-b">Setores <span id="count" class="text-sm text-gray-500">(0)</span></h2>
+      <div class="overflow-x-auto">
+        <table id="sectors-table" class="w-full">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="p-4 text-left">Nome</th>
+              <th class="p-4 text-left">Ramal</th>
+              <th class="p-4 text-left">Cilindro</th>
+              <th class="p-4 text-left">Toner</th>
+              <th class="p-4 text-left">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="sectors-tbody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
+        <h2 class="text-2xl font-semibold mb-6">Editar Setor</h2>
+        <form id="edit-form" class="space-y-4">
+          <input type="hidden" id="edit-id">
+          <input type="text" id="edit-nome" class="w-full p-3 border rounded-lg" required>
+          <input type="text" id="edit-ramal" class="w-full p-3 border rounded-lg" required>
+          <input type="text" id="edit-cilindro" class="w-full p-3 border rounded-lg" required>
+          <input type="number" id="edit-toner" class="w-full p-3 border rounded-lg" required>
+          <div class="flex gap-3">
+            <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Salvar</button>
+            <button type="button" id="cancel-edit" class="flex-1 bg-gray-300 py-2 rounded-lg hover:bg-gray-400">Cancelar</button>
   <title>Controle de Toner</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="script.js" defer></script>
