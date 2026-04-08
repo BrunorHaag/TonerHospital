@@ -1,24 +1,10 @@
-# Controle de Toner - Firebase Sync
+# Controle de Toner
 
-## Local
-- `index.html` - Versão localStorage
-- `firebase.html` - **Sync real-time Firebase** (melhor!)
-
-## Deploy Firebase Hosting
-```bash
-firebase login
-firebase use toners-ahsj-d60b8
-firebase deploy --only hosting
-```
-
-URL: https://toners-ahsj-d60b8.web.app
+## Uso
+Open index.html in browser.
 
 ## Funcionalidades
-- ➕ Adicionar setores
-- ✏️ Editar todos campos
-- 🗑️ Excluir
-- 🔥 **Sync real-time** entre dispositivos
-- 📱 Responsivo
-
-**Teste:** Abra firebase.html em 2 browsers/abrir 2 PCs!
+- Add/edit/delete setores
+- LocalStorage persistence
+- Responsive design
 
