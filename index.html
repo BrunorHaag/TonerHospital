@@ -6,7 +6,6 @@
   <title>Controle de Toner</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js" defer></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gray-100 min-h-screen p-8">
@@ -18,9 +17,9 @@
         <h2 class="text-2xl font-semibold mb-4">Adicionar Setor</h2>
         <form id="add-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="text" id="nome" placeholder="Nome do Setor" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-          <input type="text" id="ramal" placeholder="Ramal do Setor" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          <input type="text" id="ramal" placeholder="Ramal" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
           <input type="text" id="cilindro" placeholder="Cilindro" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-          <input type="number" id="toner" placeholder="Toner Disponível" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          <input type="number" id="toner" placeholder="Toner" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
           <button type="submit" class="md:col-span-4 bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 transition-colors">Adicionar</button>
         </form>
       </div>
@@ -36,45 +35,33 @@
                 <th class="p-4 text-left">Nome</th>
                 <th class="p-4 text-left">Ramal</th>
                 <th class="p-4 text-left">Cilindro</th>
-                <th class="p-4 text-left">Toner Disponível</th>
+                <th class="p-4 text-left">Toner</th>
                 <th class="p-4 text-left">Ações</th>
               </tr>
             </thead>
-            <tbody id="sectors-tbody">
-              </tbody>
+            <tbody id="sectors-tbody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
     <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-lg p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="bg-white rounded-lg p-8 max-w-md w-full shadow-2xl">
         <h2 class="text-2xl font-semibold mb-6">Editar Setor</h2>
         <form id="edit-form" class="space-y-4">
           <input type="hidden" id="edit-id">
-          <div class="space-y-1">
-            <label class="text-sm font-medium text-gray-600">Nome do Setor</label>
-            <input type="text" id="edit-nome" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-          </div>
-          <div class="space-y-1">
-            <label class="text-sm font-medium text-gray-600">Ramal</label>
-            <input type="text" id="edit-ramal" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-          </div>
-          <div class="space-y-1">
-            <label class="text-sm font-medium text-gray-600">Cilindro</label>
-            <input type="text" id="edit-cilindro" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-          </div>
-          <div class="space-y-1">
-            <label class="text-sm font-medium text-gray-600">Toner Disponível</label>
-            <input type="number" id="edit-toner" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
-          </div>
+          <input type="text" id="edit-nome" class="w-full p-3 border rounded-lg" required placeholder="Nome">
+          <input type="text" id="edit-ramal" class="w-full p-3 border rounded-lg" required placeholder="Ramal">
+          <input type="text" id="edit-cilindro" class="w-full p-3 border rounded-lg" required placeholder="Cilindro">
+          <input type="number" id="edit-toner" class="w-full p-3 border rounded-lg" required placeholder="Toner">
           <div class="flex gap-3 pt-4">
-            <button type="submit" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors">Salvar</button>
-            <button type="button" id="cancel-edit" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-semibold hover:bg-gray-400 transition-colors">Cancelar</button>
+            <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Salvar</button>
+            <button type="button" id="cancel-edit" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg">Cancelar</button>
           </div>
         </form>
       </div>
     </div>
   </div>
+  <script src="script.js"></script>
 </body>
 </html>
