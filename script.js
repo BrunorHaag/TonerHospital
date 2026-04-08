@@ -1,122 +1,150 @@
-// Toner Control - Firebase Firestore (Production Ready)
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+// 1. Configurações de Conexão
+// Substitua pelos seus dados do Supabase (Project Settings > API)
+const SUPABASE_URL = 'https://hyelausjutkbvmvxjvic.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5ZWxhdXNqdXRrYnZtdnhqdmljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2ODIxMjQsImV4cCI6MjA5MTI1ODEyNH0.46Gf7zfpvsvsXLDhxZH6h-ylRNZF91rYAE_yyKxjIFE';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAuc5QDmQ9K9ek9f-8L0O8a6oX4fO3gI1M",
-  authDomain: "toners-ahsj.firebaseapp.com",
-  projectId: "toners-ahsj",
-  storageBucket: "toners-ahsj.appspot.com",
-  messagingSenderId: "1088759155459",
-  appId: "1:1088759155459:web:9d7b1c6e7f88e7e1b2a4c9"
-};
+// 2. Elementos do DOM
+const tableBody = document.getElementById('sectors-tbody');
+const addForm = document.getElementById('add-form');
+const countSpan = document.getElementById('count');
+const editModal = document.getElementById('edit-modal');
+const editForm = document.getElementById('edit-form');
+const cancelEditBtn = document.getElementById('cancel-edit');
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// --- FUNÇÕES DE DADOS (CRUD) ---
 
-document.getElementById('status-text').textContent = '🔥 Firebase Ready';
-document.getElementById('db-status').className = 'mb-8 p-4 rounded-xl shadow-lg border-l-4 border-orange-500 bg-orange-50';
+// Buscar todos os setores e atualizar a tela
+async function fetchSectors() {
+    const { data, error } = await _supabase
+        .from('setores')
+        .select('*')
+        .order('nome', { ascending: true });
 
-async function loadSectors() {
-  try {
-    const q = query(collection(db, "setores"), orderBy("id", "desc"));
-    const snapshot = await getDocs(q);
-    const tbody = document.getElementById('sectors-tbody');
-    const count = document.getElementById('count');
-    tbody.innerHTML = '';
-    count.textContent = `(${snapshot.size})`;
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const row = document.createElement('tr');
-      row.className = 'hover:bg-orange-50 border-b transition-colors';
-      row.innerHTML = `
-        <td class="p-6 font-semibold">${data.nome}</td>
-        <td class="p-6">${data.ramal}</td>
-        <td class="p-6">${data.cilindro}</td>
-        <td class="p-6 font-bold text-xl">${data.toner}</td>
-        <td class="p-6">
-          <button class="edit-btn bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-xl font-bold hover:from-orange-600 hover:to-orange-700 shadow-lg mr-3" data-id="${docSnap.id}">Editar</button>
-          <button class="delete-btn bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-bold hover:from-red-600 hover:to-red-700 shadow-lg" data-id="${docSnap.id}">Excluir</button>
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
-  } catch (error) {
-    console.error("Firestore error:", error);
-  }
+    if (error) {
+        console.error('Erro ao buscar dados:', error.message);
+        return;
+    }
+    renderTable(data);
 }
 
-function showEditModal(sectorId, sectorData) {
-  document.getElementById('edit-id').value = sectorId;
-  document.getElementById('edit-nome').value = sectorData.nome;
-  document.getElementById('edit-ramal').value = sectorData.ramal;
-  document.getElementById('edit-cilindro').value = sectorData.cilindro;
-  document.getElementById('edit-toner').value = sectorData.toner;
-  document.getElementById('edit-modal').classList.remove('hidden');
-}
+// Adicionar novo setor
+addForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const newSector = {
+        nome: document.getElementById('nome').value,
+        ramal: document.getElementById('ramal').value,
+        cilindro: document.getElementById('cilindro').value,
+        toner: parseInt(document.getElementById('toner').value)
+    };
 
-function hideEditModal() {
-  document.getElementById('edit-modal').classList.add('hidden');
-}
-
-// Add
-document.getElementById('add-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  try {
-    await addDoc(collection(db, "setores"), {
-      nome: document.getElementById('nome').value.trim(),
-      ramal: document.getElementById('ramal').value.trim(),
-      cilindro: document.getElementById('cilindro').value.trim(),
-      toner: parseInt(document.getElementById('toner').value) || 0,
-      id: Date.now()
-    });
-    e.target.reset();
-    loadSectors();
-  } catch (error) {
-    alert('Erro: ' + error.message);
-  }
+    const { error } = await _supabase.from('setores').insert([newSector]);
+    
+    if (error) {
+        alert('Erro ao adicionar: ' + error.message);
+    } else {
+        addForm.reset();
+        // Não precisamos chamar fetchSectors() aqui pois o Realtime fará isso
+    }
 });
 
-// Edit
-document.getElementById('edit-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  try {
+// Deletar setor
+async function deleteSector(id) {
+    if (confirm('Tem certeza que deseja excluir este setor?')) {
+        const { error } = await _supabase.from('setores').delete().eq('id', id);
+        if (error) alert('Erro ao deletar: ' + error.message);
+    }
+}
+
+// Atualizar setor (Salvar edição)
+editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
     const id = document.getElementById('edit-id').value;
-    await updateDoc(doc(db, "setores", id), {
-      nome: document.getElementById('edit-nome').value.trim(),
-      ramal: document.getElementById('edit-ramal').value.trim(),
-      cilindro: document.getElementById('edit-cilindro').value.trim(),
-      toner: parseInt(document.getElementById('edit-toner').value) || 0
+    
+    const updatedData = {
+        nome: document.getElementById('edit-nome').value,
+        ramal: document.getElementById('edit-ramal').value,
+        cilindro: document.getElementById('edit-cilindro').value,
+        toner: parseInt(document.getElementById('edit-toner').value)
+    };
+
+    const { error } = await _supabase.from('setores').update(updatedData).eq('id', id);
+    
+    if (error) {
+        alert('Erro ao atualizar: ' + error.message);
+    } else {
+        closeModal();
+    }
+});
+
+// --- LÓGICA DE INTERFACE ---
+
+function renderTable(sectors) {
+    tableBody.innerHTML = '';
+    
+    // Atualiza o contador (X) ao lado do título
+    if (countSpan) countSpan.innerText = `(${sectors.length})`;
+    
+    sectors.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition-colors border-b";
+        tr.innerHTML = `
+            <td class="p-4">${item.nome}</td>
+            <td class="p-4">${item.ramal}</td>
+            <td class="p-4">${item.cilindro}</td>
+            <td class="p-4 font-semibold text-blue-600">${item.toner}</td>
+            <td class="p-4 flex gap-3">
+                <button onclick="openEditModal('${item.id}', '${item.nome}', '${item.ramal}', '${item.cilindro}', ${item.toner})" 
+                        class="text-blue-500 hover:text-blue-700 font-medium">Editar</button>
+                <button onclick="deleteSector('${item.id}')" 
+                        class="text-red-500 hover:text-red-700 font-medium">Excluir</button>
+            </td>
+        `;
+        tableBody.appendChild(tr);
     });
-    loadSectors();
-    hideEditModal();
-  } catch (error) {
-    alert('Erro: ' + error.message);
-  }
-});
+}
 
-// Events
-document.addEventListener('click', async (e) => {
-  if (e.target.classList.contains('edit-btn')) {
-    const id = e.target.dataset.id;
-    const docSnap = await getDoc(doc(db, "setores", id));
-    if (docSnap.exists()) {
-      showEditModal(id, docSnap.data());
-    }
-  }
-  if (e.target.classList.contains('delete-btn')) {
-    if (confirm('Excluir setor?')) {
-      await deleteDoc(doc(db, "setores", e.target.dataset.id));
-      loadSectors();
-    }
-  }
-});
+// Funções do Modal
+function openEditModal(id, nome, ramal, cilindro, toner) {
+    document.getElementById('edit-id').value = id;
+    document.getElementById('edit-nome').value = nome;
+    document.getElementById('edit-ramal').value = ramal;
+    document.getElementById('edit-cilindro').value = cilindro;
+    document.getElementById('edit-toner').value = toner;
+    
+    editModal.classList.remove('hidden');
+}
 
-document.getElementById('cancel-edit').onclick = hideEditModal;
-document.getElementById('edit-modal').onclick = (e) => {
-  if (e.target.id === 'edit-modal') hideEditModal();
+function closeModal() {
+    editModal.classList.add('hidden');
+    editForm.reset();
+}
+
+cancelEditBtn.addEventListener('click', closeModal);
+
+// Fechar modal ao clicar fora dele
+window.onclick = function(event) {
+    if (event.target == editModal) closeModal();
+}
+
+// --- SINCRONIZAÇÃO EM TEMPO REAL ---
+
+const subscribeToChanges = () => {
+    _supabase
+        .channel('db-changes')
+        .on('postgres_changes', 
+            { event: '*', schema: 'public', table: 'setores' }, 
+            (payload) => {
+                console.log('Mudança detectada no banco:', payload);
+                fetchSectors(); 
+            }
+        )
+        .subscribe();
 };
 
-loadSectors();
-
+// Inicialização ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+    fetchSectors();
+    subscribeToChanges();
+});

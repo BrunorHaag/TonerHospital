@@ -3,270 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Toner - SQLite</title>
+  <title>Controle de Toner</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen py-12 px-4">
-  <div class="max-w-4xl mx-auto">
-    <!-- Header -->
-    <div class="text-center mb-12">
-      <h1 class="text-5xl md:text-6xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-        Controle de Toner
-      </h1>
-      <div id="status" class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-100 border-2 border-emerald-400 rounded-full text-emerald-800 font-semibold text-lg shadow-lg">
-        🔄 Carregando SQLite...
-      </div>
-      <div class="mt-6 flex flex-wrap gap-4 justify-center">
-        <button id="exportBtn" class="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl font-bold hover:from-green-600 hover:to-green-700 shadow-xl">
-          💾 Export DB
-        </button>
-        <input id="importFile" type="file" accept=".db,.sqlite,.sqlite3" class="hidden">
-        <button id="importBtn" class="px-8 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl font-bold hover:from-purple-600 hover:to-purple-700 shadow-xl">
-          📥 Import DB
-        </button>
-      </div>
-    </div>
+<body class="bg-gray-100 min-h-screen p-8">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-800 mb-8 text-center">Controle de Toner</h1>
 
-    <!-- Add Form -->
-    <div class="bg-white/80 backdrop-blur-sm shadow-2xl rounded-3xl p-8 mb-12">
-      <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">➕ Novo Setor</h2>
-      <form id="addForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <input type="text" id="nome" placeholder="Nome do Setor *" class="input-field" required>
-        <input type="text" id="ramal" placeholder="Ramal *" class="input-field" required>
-        <input type="text" id="cilindro" placeholder="Cilindro *" class="input-field" required>
-        <input type="number" id="toner" placeholder="Toner Disponível *" class="input-field" min="0" required>
-        <button type="submit" class="md:col-span-2 lg:col-span-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-5 px-8 rounded-2xl font-bold text-xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2 transition-all">
-          💾 Salvar Setor
-        </button>
-      </form>
-    </div>
+    <div id="dashboard">
+      <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Adicionar Setor</h2>
+        <form id="add-form" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input type="text" id="nome" placeholder="Nome do Setor" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          <input type="text" id="ramal" placeholder="Ramal do Setor" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          <input type="text" id="cilindro" placeholder="Cilindro" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          <input type="number" id="toner" placeholder="Toner Disponível" class="p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          <button type="submit" class="md:col-span-4 bg-green-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-600 transition-colors">Adicionar</button>
+        </form>
+      </div>
 
-    <!-- Table -->
-    <div class="bg-white/80 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden">
-      <div class="p-8 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div class="flex items-center gap-4">
-          <h2 class="text-4xl font-black text-gray-800">📋 Setores</h2>
-          <span id="count" class="bg-blue-100 text-blue-800 px-6 py-3 rounded-2xl font-mono text-2xl font-bold">(0)</span>
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <h2 class="text-2xl font-semibold p-6 border-b flex justify-between items-center">
+          Setores <span id="count" class="text-gray-400 text-lg font-normal"></span>
+        </h2>
+        <div class="overflow-x-auto">
+          <table id="sectors-table" class="w-full">
+            <thead>
+              <tr class="bg-gray-50">
+                <th class="p-4 text-left">Nome</th>
+                <th class="p-4 text-left">Ramal</th>
+                <th class="p-4 text-left">Cilindro</th>
+                <th class="p-4 text-left">Toner Disponível</th>
+                <th class="p-4 text-left">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="sectors-tbody">
+              </tbody>
+          </table>
         </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-              <th class="p-6 text-left font-bold text-xl text-gray-700 border-b-2 border-gray-200">Nome</th>
-              <th class="p-6 text-left font-bold text-xl text-gray-700 border-b-2 border-gray-200">Ramal</th>
-              <th class="p-6 text-left font-bold text-xl text-gray-700 border-b-2 border-gray-200">Cilindro</th>
-              <th class="p-6 text-left font-bold text-xl text-gray-700 border-b-2 border-gray-200">Toner</th>
-              <th class="p-6 text-left font-bold text-xl text-gray-700 border-b-2 border-gray-200">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-          </tbody>
-        </table>
-      </div>
     </div>
 
-    <!-- Edit Modal -->
-    <div id="editModal" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-3xl p-10 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        <h2 class="text-4xl font-black mb-10 text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          ✏️ Editar Setor
-        </h2>
-        <form id="editForm" class="space-y-6">
-          <input type="hidden" id="editId">
-          <input type="text" id="editNome" class="input-field w-full" required>
-          <input type="text" id="editRamal" class="input-field w-full" required>
-          <input type="text" id="editCilindro" class="input-field w-full" required>
-          <input type="number" id="editToner" class="input-field w-full" min="0" required>
-          <div class="flex gap-6 pt-8">
-            <button type="submit" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-5 px-8 rounded-2xl font-bold text-xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-              💾 Atualizar
-            </button>
-            <button type="button" id="cancelBtn" class="flex-1 bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white py-5 px-8 rounded-2xl font-bold text-xl shadow-xl hover:shadow-2xl transform hover:-translate-y-2">
-              ❌ Cancelar
-            </button>
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg p-8 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <h2 class="text-2xl font-semibold mb-6">Editar Setor</h2>
+        <form id="edit-form" class="space-y-4">
+          <input type="hidden" id="edit-id">
+          <div class="space-y-1">
+            <label class="text-sm font-medium text-gray-600">Nome do Setor</label>
+            <input type="text" id="edit-nome" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm font-medium text-gray-600">Ramal</label>
+            <input type="text" id="edit-ramal" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm font-medium text-gray-600">Cilindro</label>
+            <input type="text" id="edit-cilindro" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="space-y-1">
+            <label class="text-sm font-medium text-gray-600">Toner Disponível</label>
+            <input type="number" id="edit-toner" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="submit" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors">Salvar</button>
+            <button type="button" id="cancel-edit" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg font-semibold hover:bg-gray-400 transition-colors">Cancelar</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-
-  <style>
-    .input-field {
-      padding: 1.25rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 1.5rem;
-      font-size: 1.125rem;
-      transition: all 0.3s;
-    }
-    .input-field:focus {
-      border-color: #3b82f6;
-      ring: 4px solid #dbeafe;
-      outline: none;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
-    }
-  </style>
-
-  <script>
-    let db = null;
-
-    async function initSQLite() {
-      try {
-        const SQL = await initSqlJs({
-          locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}`
-        });
-        db = new SQL.Database();
-        
-        db.run(`
-          CREATE TABLE IF NOT EXISTS setores (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL,
-            ramal TEXT NOT NULL,
-            cilindro TEXT NOT NULL,
-            toner INTEGER NOT NULL
-          )
-        `);
-
-        document.getElementById('status').innerHTML = '✅ SQLite Carregado <span class="text-sm">(sql.js WASM)</span>';
-        document.getElementById('status').className = 'inline-flex items-center gap-2 px-6 py-3 bg-emerald-100 border-2 border-emerald-400 rounded-full text-emerald-800 font-semibold text-lg shadow-lg';
-        
-        loadSectors();
-        setupButtons();
-      } catch (err) {
-        document.getElementById('status').textContent = '❌ SQLite Error';
-        console.error(err);
-      }
-    }
-
-    function loadSectors() {
-      const res = db.exec('SELECT * FROM setores ORDER BY id DESC');
-      const tbody = document.getElementById('tableBody');
-      const count = document.getElementById('count');
-      tbody.innerHTML = '';
-      count.textContent = `(${res[0]?.values?.length || 0})`;
-
-      if (res[0]) {
-        res[0].values.forEach(row => {
-          const [id, nome, ramal, cilindro, toner] = row;
-          const tr = document.createElement('tr');
-          tr.className = 'hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all border-b border-gray-100';
-          tr.innerHTML = `
-            <td class="p-6 font-bold text-lg">${nome}</td>
-            <td class="p-6 font-mono text-blue-600">${ramal}</td>
-            <td class="p-6">${cilindro}</td>
-            <td class="p-6">
-              <span class="inline-block w-20 px-4 py-2 bg-gradient-to-r from-emerald-100 to-emerald-200 rounded-full font-bold text-emerald-800 text-xl">${toner}</span>
-            </td>
-            <td class="p-6">
-              <button class="editBtn mr-4 px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl font-bold text-lg hover:from-blue-600 hover:to-blue-700 hover:shadow-xl transform hover:-translate-y-1 transition-all" data-id="${id}">Editar</button>
-              <button class="deleteBtn px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-bold text-lg hover:from-red-600 hover:to-red-700 hover:shadow-xl transform hover:-translate-y-1 transition-all" data-id="${id}">Excluir</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      }
-    }
-
-    function abrirModalEdicao(id) {
-      const res = db.exec('SELECT * FROM setores WHERE id = ?', {bind: [id]});
-      if (res[0] && res[0].values[0]) {
-        const [_, nome, ramal, cilindro, toner] = res[0].values[0];
-        document.getElementById('editId').value = id;
-        document.getElementById('editNome').value = nome;
-        document.getElementById('editRamal').value = ramal;
-        document.getElementById('editCilindro').value = cilindro;
-        document.getElementById('editToner').value = toner;
-        document.getElementById('editModal').classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-      }
-    }
-
-    function fecharModalEdicao() {
-      document.getElementById('editModal').classList.add('hidden');
-      document.body.classList.remove('overflow-hidden');
-    }
-
-    function setupButtons() {
-      // Add
-      document.getElementById('addForm').onsubmit = (e) => {
-        e.preventDefault();
-        db.run('INSERT INTO setores (nome, ramal, cilindro, toner) VALUES (?, ?, ?, ?)', [
-          document.getElementById('nome').value.trim(),
-          document.getElementById('ramal').value.trim(),
-          document.getElementById('cilindro').value.trim(),
-          parseInt(document.getElementById('toner').value) || 0
-        ]);
-        e.target.reset();
-        loadSectors();
-      };
-
-      // Edit
-      document.getElementById('editForm').onsubmit = (e) => {
-        e.preventDefault();
-        const id = parseInt(document.getElementById('editId').value);
-        db.run('UPDATE setores SET nome = ?, ramal = ?, cilindro = ?, toner = ? WHERE id = ?', [
-          document.getElementById('editNome').value.trim(),
-          document.getElementById('editRamal').value.trim(),
-          document.getElementById('editCilindro').value.trim(),
-          parseInt(document.getElementById('editToner').value) || 0,
-          id
-        ]);
-        loadSectors();
-        fecharModalEdicao();
-      };
-
-      // Cancel
-      document.getElementById('cancelBtn').onclick = fecharModalEdicao;
-
-      // Modal close
-      document.getElementById('editModal').onclick = (e) => {
-        if (e.target.id === 'editModal') fecharModalEdicao();
-      };
-
-      // Actions
-      document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('editBtn')) {
-          abrirModalEdicao(parseInt(e.target.dataset.id));
-        }
-        if (e.target.classList.contains('deleteBtn')) {
-          if (confirm('Confirmar exclusão?')) {
-            db.run('DELETE FROM setores WHERE id = ?', [parseInt(e.target.dataset.id)]);
-            loadSectors();
-          }
-        }
-      });
-
-      // Export
-      document.getElementById('exportBtn').onclick = () => {
-        const data = db.export();
-        const blob = new Blob([data]);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `toner-${new Date().toISOString().split('T')[0]}.db`;
-        a.click();
-      };
-
-      // Import
-      document.getElementById('importBtn').onclick = () => document.getElementById('importFile').click();
-      document.getElementById('importFile').onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            db = new SQL.Database(data);
-            loadSectors();
-          };
-          reader.readAsArrayBuffer(file);
-        }
-      };
-    }
-
-    initSQLite();
-  </script>
 </body>
 </html>
-
