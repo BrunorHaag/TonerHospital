@@ -83,20 +83,7 @@ function renderTable(sectors) {
     tableBody.innerHTML = '';
     countSpan.innerText = `(${sectors.length})`;
     
-    // Variáveis para acumular os totais
-    let totalToner = 0;
-    let totalCilindro = 0;
-    
     sectors.forEach(item => {
-        // Somar os valores (convertendo para número para garantir)
-        // Se o cilindro for texto (ex: "DR-123"), a soma de cilindros pode não ser numérica.
-        // Se cilindro for quantidade, use: totalCilindro += parseInt(item.cilindro) || 0;
-        totalToner += parseInt(item.toner) || 0;
-        
-        // Se o seu campo "cilindro" for apenas o NOME do modelo, ignore a linha abaixo.
-        // Se for a QUANTIDADE de cilindros, mantenha:
-        totalCilindro += parseInt(item.cilindro) || 0;
-
         const tr = document.createElement('tr');
         tr.className = "hover:bg-gray-50 border-b";
         tr.innerHTML = `
@@ -105,16 +92,12 @@ function renderTable(sectors) {
             <td class="p-4">${item.cilindro}</td>
             <td class="p-4 font-semibold text-blue-600">${item.toner}</td>
             <td class="p-4 flex gap-3">
-                <button onclick="openEditModal('${item.id}', '${item.nome}', '${item.ramal}', '${item.cilindro}', ${item.toner})" class="text-blue-500 hover:underline">Editar</button>
-                <button onclick="deleteSector('${item.id}')" class="text-red-500 hover:underline">Excluir</button>
+                <button onclick="openEditModal('${item.id}', '${item.nome}', '${item.ramal}', '${item.cilindro}', ${item.toner})" class="text-blue-500">Editar</button>
+                <button onclick="deleteSector('${item.id}')" class="text-red-500">Excluir</button>
             </td>
         `;
         tableBody.appendChild(tr);
     });
-
-    // Atualiza os elementos de total no dashboard
-    document.getElementById('total-toner').innerText = totalToner;
-    document.getElementById('total-cilindro').innerText = totalCilindro;
 }
 
 function closeModal() {
@@ -133,3 +116,5 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchSectors();
     }).subscribe();
 });
+
+
